@@ -587,7 +587,9 @@ router.post('/products/:productId/availability', authMiddleware, requireRole('Ad
       start_time,
       end_time: req.body.end_time,
       capacity_total,
-      capacity_available: capacity_total
+      capacity_available: capacity_total,
+      is_active: true,
+      is_deleted: false
     });
     res.status(201).json({ success: true, data: slot });
   } catch (error) { next(error); }

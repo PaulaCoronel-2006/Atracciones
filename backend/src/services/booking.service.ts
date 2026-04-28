@@ -28,7 +28,7 @@ export class BookingService {
     paymentMethod?: string;
   }) {
     // Verificar que el slot existe y tiene disponibilidad
-    const slot = await this.slotRepo.findById(data.slotId);
+    const slot = await this.slotRepo.findSlotById(data.slotId);
     if (!slot) throw new Error('Horario no encontrado');
     if (!slot.is_active) throw new Error('Horario no disponible');
 

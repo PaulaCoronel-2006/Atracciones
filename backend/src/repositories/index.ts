@@ -164,6 +164,20 @@ export class ProductOptionRepository extends GenericRepository<any> {
 export class AvailabilitySlotRepository extends GenericRepository<any> {
   constructor() { super('availability_slots'); }
 
+  // Override: availability_slots may not have is_deleted column
+  async findSlotById(slotId: string) {
+    const { data, error } = await supabase
+      .from('availability_slots')
+      .select('*')
+      .eq('id', slotId)
+      .single();
+    if (error) {
+      if (error.code === 'PGRST116') return null;
+      throw new Error(`Error al buscar slot: ${error.message}`);
+    }
+    return data;
+  }
+
   async findAvailable(productId: string, date: string) {
     const { data, error } = await supabase
       .from('availability_slots')
@@ -179,7 +193,7 @@ export class AvailabilitySlotRepository extends GenericRepository<any> {
   }
 
   async decreaseCapacity(slotId: string, quantity: number) {
-    const slot = await this.findById(slotId);
+    const slot = await this.findSlotById(slotId);
     if (!slot) throw new Error('Slot no encontrado');
     if (slot.capacity_available < quantity) {
       throw new Error('No hay suficientes cupos disponibles');
@@ -197,7 +211,7 @@ export class AvailabilitySlotRepository extends GenericRepository<any> {
   }
 
   async increaseCapacity(slotId: string, quantity: number) {
-    const slot = await this.findById(slotId);
+    const slot = await this.findSlotById(slotId);
     if (!slot) throw new Error('Slot no encontrado');
 
     const newCapacity = Math.min(slot.capacity_available + quantity, slot.capacity_total);
