@@ -1,0 +1,128 @@
+.bookings-page {
+  padding-top: 90px;
+  min-height: 100vh;
+  padding-bottom: var(--space-3xl);
+}
+
+.bookings-header {
+  margin-bottom: var(--space-2xl);
+}
+
+.bookings-header h1 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  color: white;
+}
+
+.bookings-header p {
+  color: var(--gray-400);
+  margin-top: var(--space-xs);
+}
+
+.pnr-search-section {
+  padding: var(--space-xl);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--space-2xl);
+}
+
+.pnr-search-section h3 {
+  font-size: 1rem;
+  color: white;
+  margin-bottom: var(--space-md);
+}
+
+.pnr-search-form {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.pnr-search-form .input-field {
+  flex: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-weight: 600;
+}
+
+.search-error {
+  color: var(--accent-coral);
+  font-size: 0.85rem;
+  margin-top: var(--space-sm);
+}
+
+.search-result { margin-top: var(--space-md); }
+
+.bookings-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.booking-list-card { transition: all var(--transition-base); }
+.booking-list-card:hover { transform: translateY(-2px); }
+
+.booking-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-md);
+}
+
+.booking-card-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.booking-pnr {
+  font-family: 'Outfit', monospace;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 0.08em;
+}
+
+.booking-total {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: white;
+}
+
+.booking-card-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-md);
+}
+
+.booking-detail-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 0.85rem;
+  color: var(--gray-400);
+}
+
+.booking-card-actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.bookings-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-3xl);
+  color: var(--gray-500);
+  text-align: center;
+}
+
+.bookings-empty h3 { color: var(--gray-300); font-size: 1.2rem; }
+
+.booking-card-skeleton .card-body { min-height: 100px; }
+
+@media (max-width: 768px) {
+  .pnr-search-form { flex-direction: column; }
+  .booking-card-header { flex-direction: column; align-items: flex-start; gap: var(--space-sm); }
+}

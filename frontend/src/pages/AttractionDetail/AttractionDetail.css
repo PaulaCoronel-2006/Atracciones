@@ -1,0 +1,384 @@
+.detail-page {
+  padding-top: 90px;
+  min-height: 100vh;
+  padding-bottom: var(--space-3xl);
+}
+
+.detail-skeleton { padding: var(--space-2xl) 0; }
+
+.detail-not-found {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+  padding: var(--space-3xl) 0;
+  color: var(--gray-400);
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  background: transparent;
+  color: var(--gray-400);
+  font-size: 0.9rem;
+  margin-bottom: var(--space-md);
+  transition: color var(--transition-fast);
+}
+
+.back-btn:hover { color: var(--primary-400); }
+
+.detail-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 800;
+  color: white;
+  margin-bottom: var(--space-sm);
+}
+
+.detail-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+.detail-location, .detail-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+}
+
+.detail-location { color: var(--gray-400); }
+.detail-rating { color: var(--accent-amber); font-weight: 600; }
+.rating-count { color: var(--gray-500); font-weight: 400; font-size: 0.8rem; }
+
+/* GALERIA */
+.detail-gallery {
+  margin: var(--space-xl) 0;
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+}
+
+.gallery-main {
+  width: 100%;
+  height: 420px;
+  overflow: hidden;
+  border-radius: var(--radius-2xl);
+}
+
+.gallery-main-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-slow);
+}
+
+.gallery-main-img:hover { transform: scale(1.03); }
+
+.gallery-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-dark-surface);
+  color: var(--gray-600);
+}
+
+.gallery-thumbs {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+  overflow-x: auto;
+  padding-bottom: var(--space-xs);
+}
+
+.gallery-thumb {
+  flex-shrink: 0;
+  width: 80px;
+  height: 56px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 2px solid transparent;
+  background: none;
+  padding: 0;
+  transition: border-color var(--transition-fast);
+  opacity: 0.6;
+}
+
+.gallery-thumb.active, .gallery-thumb:hover {
+  border-color: var(--primary-500);
+  opacity: 1;
+}
+
+.gallery-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* CONTENIDO 2 COLUMNAS */
+.detail-content {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: var(--space-xl);
+  align-items: flex-start;
+}
+
+.detail-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.info-section {
+  padding: var(--space-xl);
+  border-radius: var(--radius-xl);
+}
+
+.info-section h2 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: var(--space-md);
+}
+
+.detail-description {
+  color: var(--gray-300);
+  line-height: 1.8;
+  font-size: 0.95rem;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+
+.info-item {
+  display: flex;
+  gap: var(--space-sm);
+  color: var(--primary-400);
+}
+
+.info-item div { display: flex; flex-direction: column; }
+.info-label { font-size: 0.75rem; color: var(--gray-500); }
+.info-value { font-size: 0.9rem; color: var(--gray-200); }
+
+/* BOOKING CARD */
+.detail-booking {
+  position: sticky;
+  top: 90px;
+}
+
+.booking-card {
+  padding: var(--space-xl);
+  border-radius: var(--radius-2xl);
+}
+
+.booking-card-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: var(--space-lg);
+}
+
+.booking-step {
+  margin-bottom: var(--space-lg);
+}
+
+.step-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary-400);
+  margin-bottom: var(--space-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.product-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.product-option {
+  text-align: left;
+  padding: var(--space-md);
+  background: var(--bg-dark-surface);
+  border: 1px solid var(--gray-700);
+  border-radius: var(--radius-lg);
+  color: var(--gray-200);
+  transition: all var(--transition-fast);
+}
+
+.product-option:hover { border-color: var(--primary-500); }
+.product-option.selected {
+  border-color: var(--primary-500);
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.product-title { font-weight: 600; font-size: 0.95rem; color: white; }
+.product-duration { font-size: 0.8rem; color: var(--gray-400); margin-top: 2px; }
+
+.product-prices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-top: var(--space-sm);
+}
+
+.price-tag {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--accent-emerald);
+  border-radius: var(--radius-full);
+}
+
+.product-includes {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--gray-500);
+  margin-top: var(--space-xs);
+}
+
+.slot-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-top: var(--space-sm);
+}
+
+.slot-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-dark-surface);
+  border: 1px solid var(--gray-700);
+  border-radius: var(--radius-md);
+  color: var(--gray-300);
+  font-size: 0.85rem;
+  transition: all var(--transition-fast);
+}
+
+.slot-option:hover { border-color: var(--primary-500); }
+.slot-option.selected { border-color: var(--primary-500); background: rgba(59, 130, 246, 0.08); }
+.slot-capacity { margin-left: auto; font-size: 0.75rem; color: var(--accent-emerald); }
+.no-slots { font-size: 0.85rem; color: var(--gray-500); text-align: center; padding: var(--space-md); }
+
+/* TRAVELER FORMS */
+.traveler-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: var(--bg-dark-surface);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-sm);
+}
+
+.traveler-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--gray-300);
+}
+
+.remove-traveler {
+  background: transparent;
+  color: var(--accent-coral);
+  padding: 2px;
+}
+
+.traveler-row {
+  display: grid;
+  grid-template-columns: 1fr 80px;
+  gap: var(--space-sm);
+}
+
+.booking-summary {
+  padding: var(--space-md);
+  background: rgba(59, 130, 246, 0.06);
+  border: 1px solid rgba(59, 130, 246, 0.15);
+  border-radius: var(--radius-lg);
+  margin-top: var(--space-md);
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
+  color: var(--gray-300);
+}
+
+.summary-total {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: white;
+}
+
+.booking-submit {
+  width: 100%;
+  margin-top: var(--space-md);
+}
+
+/* SUCCESS */
+.booking-success {
+  text-align: center;
+  padding: var(--space-xl) 0;
+}
+
+.success-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-emerald), #059669);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  margin: 0 auto var(--space-lg);
+}
+
+.booking-success h4 {
+  font-size: 1.3rem;
+  color: white;
+  margin-bottom: var(--space-sm);
+}
+
+.pnr-code {
+  font-size: 1.1rem;
+  color: var(--primary-400);
+  margin-bottom: var(--space-sm);
+}
+
+.pnr-code strong {
+  font-size: 1.5rem;
+  letter-spacing: 0.1em;
+}
+
+.success-detail {
+  color: var(--gray-400);
+  margin-bottom: var(--space-lg);
+}
+
+@media (max-width: 900px) {
+  .detail-content {
+    grid-template-columns: 1fr;
+  }
+  .detail-booking { position: static; }
+  .gallery-main { height: 280px; }
+  .info-grid { grid-template-columns: 1fr; }
+}
