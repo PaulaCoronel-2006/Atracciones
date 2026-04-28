@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { AuthService } from '../services/auth.service';
+import { authMiddleware, AuthRequest } from '../middleware/auth.middleware';
 
 const router = Router();
 const authService = new AuthService();
@@ -139,15 +140,14 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
  *       401:
  *         description: No autenticado
  */
-router.get('/profile', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/profile', authMiddleware, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const authReq = req as any;
-    if (!authReq.user?.userId) {
+    if (!req.user?.userId) {
       res.status(401).json({ success: false, message: 'No autenticado' });
       return;
     }
 
-    const profile = await authService.getProfile(authReq.user.userId);
+    const profile = await authService.getProfile(req.user.userId);
     res.json({ success: true, data: profile });
   } catch (error) {
     next(error);
