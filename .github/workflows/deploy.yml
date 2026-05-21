@@ -28,27 +28,6 @@ jobs:
         with:
           repository: PaulaCoronel-2006/atracciones-identify-api
 
-      - name: Copiar Dockerfile al repo
-        run: |
-          cat > Dockerfile << 'EOF'
-          FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-          WORKDIR /src
-          COPY ["Microservicios.Atracciones.Identify.API/Microservicios.Atracciones.Identify.API.csproj", "Microservicios.Atracciones.Identify.API/"]
-          COPY ["Microservicios.Atracciones.Identify.Business/Microservicios.Atracciones.Identify.Business.csproj", "Microservicios.Atracciones.Identify.Business/"]
-          COPY ["Microservicios.Atracciones.Identify.DataAccess/Microservicios.Atracciones.Identify.DataAccess.csproj", "Microservicios.Atracciones.Identify.DataAccess/"]
-          COPY ["Microservicios.Atracciones.Identify.DataManagement/Microservicios.Atracciones.Identify.DataManagement.csproj", "Microservicios.Atracciones.Identify.DataManagement/"]
-          RUN dotnet restore "Microservicios.Atracciones.Identify.API/Microservicios.Atracciones.Identify.API.csproj"
-          COPY . .
-          RUN dotnet publish "Microservicios.Atracciones.Identify.API/Microservicios.Atracciones.Identify.API.csproj" -c Release -o /app/publish --no-restore
-          FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
-          WORKDIR /app
-          ENV ASPNETCORE_ENVIRONMENT=Production
-          ENV ASPNETCORE_URLS=http://+:80
-          COPY --from=build /app/publish .
-          EXPOSE 80
-          ENTRYPOINT ["dotnet", "Microservicios.Atracciones.Identify.API.dll"]
-          EOF
-
       - name: Login ACR
         uses: docker/login-action@v3
         with:
