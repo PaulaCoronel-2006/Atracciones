@@ -11,8 +11,8 @@ $ErrorActionPreference = "Stop"
 # ─────────────────────────────────────────────────────────────────────────────
 # VARIABLES GLOBALES
 # ─────────────────────────────────────────────────────────────────────────────
-$LOCATION     = "eastus"
-$RG           = "rg-atracciones-coronel"
+$LOCATION     = "centralus"
+$RG           = "rg-microclientes"
 $ACR_NAME     = "acratraccionescoronel"
 $ACA_ENV      = "aca-env-atracciones"
 
