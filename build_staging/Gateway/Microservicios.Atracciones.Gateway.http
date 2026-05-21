@@ -1,0 +1,6 @@
+@Microservicios.Atracciones.Gateway_HostAddress = http://localhost:5214
+
+GET {{Microservicios.Atracciones.Gateway_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

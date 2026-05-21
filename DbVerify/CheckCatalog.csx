@@ -1,0 +1,11 @@
+﻿using Npgsql;
+var conn = new NpgsqlConnection(@""Host=aws-1-sa-east-1.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.kimthxyijmgfglyirded;Password=AtraccionesCoronel2026!;SSL Mode=Require;Trust Server Certificate=true;"");
+await conn.OpenAsync();
+var cmd = conn.CreateCommand();
+cmd.CommandText = @""SELECT column_name, data_type FROM information_schema.columns WHERE table_name='attraction' AND table_schema='public' ORDER BY ordinal_position;"";
+var r = await cmd.ExecuteReaderAsync();
+Console.WriteLine(""Columnas de 'attraction':"");
+while(await r.ReadAsync()) Console.WriteLine("" - "" + r[0] + "" ("" + r[1] + "")"");
+await r.CloseAsync();
+cmd.CommandText = ""SELECT COUNT(*) FROM attraction;"";
+Console.WriteLine(""Filas actuales: "" + await cmd.ExecuteScalarAsync());

@@ -1,0 +1,19 @@
+# .gitignore para Microservicio .NET
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.pubxml.user
+*.pubxml
+Properties/PublishProfiles/
+Thumbs.db
+.DS_Store
