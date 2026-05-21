@@ -1,7 +1,7 @@
 # ============================================================
 # GitHub Actions — Build & Deploy Atracciones Coronel
-# Clona cada microservicio desde su propio repo y construye
-# su imagen Docker, luego despliega en Azure Container Apps
+# Construye imágenes Docker desde el monorepo y despliega
+# en Azure Container Apps
 # ============================================================
 name: Deploy Atracciones Microservicios
 
@@ -12,7 +12,7 @@ on:
 
 env:
   ACR_LOGIN_SERVER: acratraccionescoronel.azurecr.io
-  RESOURCE_GROUP:   rg-microclientes
+  RESOURCE_GROUP:   rg-atracciones-coronel
   ACA_ENV:          aca-env-atracciones
 
 jobs:
@@ -23,10 +23,8 @@ jobs:
     name: Build identify-api
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout atracciones-identify-api
+      - name: Checkout repo principal
         uses: actions/checkout@v4
-        with:
-          repository: PaulaCoronel-2006/atracciones-identify-api
 
       - name: Login ACR
         uses: docker/login-action@v3
@@ -38,7 +36,8 @@ jobs:
       - name: Build & Push identify-api
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./Microservicios.Atracciones/Microservicios.Atracciones.Identify
+          file: ./Microservicios.Atracciones/Microservicios.Atracciones.Identify/Dockerfile
           push: true
           tags: ${{ env.ACR_LOGIN_SERVER }}/identify-api:latest
 
@@ -49,10 +48,8 @@ jobs:
     name: Build catalog-api
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout atracciones-catalog-api
+      - name: Checkout repo principal
         uses: actions/checkout@v4
-        with:
-          repository: PaulaCoronel-2006/atracciones-catalog-api
 
       - name: Login ACR
         uses: docker/login-action@v3
@@ -64,7 +61,8 @@ jobs:
       - name: Build & Push catalog-api
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./Microservicios.Atracciones/Microservicios.Atracciones.Catalog
+          file: ./Microservicios.Atracciones/Microservicios.Atracciones.Catalog/Dockerfile
           push: true
           tags: ${{ env.ACR_LOGIN_SERVER }}/catalog-api:latest
 
@@ -75,10 +73,8 @@ jobs:
     name: Build booking-api
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout atracciones-booking-api
+      - name: Checkout repo principal
         uses: actions/checkout@v4
-        with:
-          repository: PaulaCoronel-2006/atracciones-booking-api
 
       - name: Login ACR
         uses: docker/login-action@v3
@@ -90,7 +86,8 @@ jobs:
       - name: Build & Push booking-api
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./Microservicios.Atracciones/Microservicios.Atracciones.Booking
+          file: ./Microservicios.Atracciones/Microservicios.Atracciones.Booking/Dockerfile
           push: true
           tags: ${{ env.ACR_LOGIN_SERVER }}/booking-api:latest
 
@@ -101,10 +98,8 @@ jobs:
     name: Build billing-api
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout atracciones-billing-api
+      - name: Checkout repo principal
         uses: actions/checkout@v4
-        with:
-          repository: PaulaCoronel-2006/atracciones-billing-api
 
       - name: Login ACR
         uses: docker/login-action@v3
@@ -116,18 +111,19 @@ jobs:
       - name: Build & Push billing-api
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./Microservicios.Atracciones/Microservicios.Atracciones.Billing
+          file: ./Microservicios.Atracciones/Microservicios.Atracciones.Billing/Dockerfile
           push: true
           tags: ${{ env.ACR_LOGIN_SERVER }}/billing-api:latest
 
   # ──────────────────────────────────────────────────────────
-  # JOB 5: Build y Push — API GATEWAY (este repo)
+  # JOB 5: Build y Push — API GATEWAY
   # ──────────────────────────────────────────────────────────
   build-gateway:
     name: Build gateway-api
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo principal (Gateway)
+      - name: Checkout repo principal
         uses: actions/checkout@v4
 
       - name: Login ACR
@@ -146,12 +142,37 @@ jobs:
           tags: ${{ env.ACR_LOGIN_SERVER }}/gateway-api:latest
 
   # ──────────────────────────────────────────────────────────
-  # JOB 6: Deploy en Azure Container Apps (espera todos)
+  # JOB 6: Build y Push — FRONTEND (NGINX)
+  # ──────────────────────────────────────────────────────────
+  build-frontend:
+    name: Build frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo principal
+        uses: actions/checkout@v4
+
+      - name: Login ACR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Build & Push frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Atracciones.Frontend
+          file: ./Atracciones.Frontend/Dockerfile
+          push: true
+          tags: ${{ env.ACR_LOGIN_SERVER }}/frontend:latest
+
+  # ──────────────────────────────────────────────────────────
+  # JOB 7: Deploy en Azure Container Apps (espera todos)
   # ──────────────────────────────────────────────────────────
   deploy:
     name: Deploy to Azure Container Apps
     runs-on: ubuntu-latest
-    needs: [build-identify, build-catalog, build-booking, build-billing, build-gateway]
+    needs: [build-identify, build-catalog, build-booking, build-billing, build-gateway, build-frontend]
     steps:
       - name: Login Azure
         uses: azure/login@v1
@@ -177,8 +198,8 @@ jobs:
             --env-vars \
               "ASPNETCORE_ENVIRONMENT=Production" \
               "ASPNETCORE_URLS=http://+:80" \
-              "ConnectionStrings__DefaultConnection=Host=db.vhjkcpaybeymqitqagxs.supabase.co;Port=5432;Database=postgres;Username=postgres;Password=ckK57qK7aNHyc7no;SSL Mode=Require;" \
-              "Jwt__Key=Microservicios.Atracciones.Identify_Super_Secret_Key_2026_Minimum_Length_Requirement_Long_String" \
+              "ConnectionStrings__DefaultConnection=Host=aws-1-us-west-2.pooler.supabase.com;Port=6543;Database=postgres;Username=postgres.cdjwkanairobhsxodpnx;Password=${{ secrets.DB_PASSWORD_IDENTIFY }};SSL Mode=Require;Trust Server Certificate=true;" \
+              "Jwt__Key=AtraccionesCoronelSuperSecretJWTKey2026MinimumLengthRequirementLongString!" \
               "Jwt__Issuer=Microservicios.Atracciones.Identify" \
               "Jwt__Audience=Microservicios.Atracciones.IdentifyUsers" \
               "Jwt__DurationMinutes=30" \
@@ -202,8 +223,8 @@ jobs:
             --env-vars \
               "ASPNETCORE_ENVIRONMENT=Production" \
               "ASPNETCORE_URLS=http://+:80" \
-              "ConnectionStrings__DefaultConnection=Host=db.koyyvtwkntezlhfvdqmb.supabase.co;Port=5432;Database=postgres;Username=postgres;Password=4qnBTn2cO6FP25Y5;" \
-              "Jwt__Key=MicroserviciosAtraccionesCatalog_Super_Secret_Key_2026_Minimum_Length_Requirement_Long_String" \
+              "ConnectionStrings__DefaultConnection=Host=aws-1-sa-east-1.pooler.supabase.com;Port=6543;Database=postgres;Username=postgres.kimthxyijmgfglyirded;Password=${{ secrets.DB_PASSWORD_CATALOG }};SSL Mode=Require;Trust Server Certificate=true;" \
+              "Jwt__Key=AtraccionesCoronelSuperSecretJWTKey2026MinimumLengthRequirementLongString!" \
               "Jwt__Issuer=MicroserviciosAtraccionesCatalog" \
               "Jwt__Audience=MicroserviciosAtraccionesCatalogUsers" \
               "Jwt__DurationMinutes=30" \
@@ -227,8 +248,8 @@ jobs:
             --env-vars \
               "ASPNETCORE_ENVIRONMENT=Production" \
               "ASPNETCORE_URLS=http://+:80" \
-              "ConnectionStrings__DefaultConnection=Host=db.xjadseakmpettnpyyxdm.supabase.co;Port=5432;Database=postgres;Username=postgres;Password=bBWJUwqbjdEcEesU;SSL Mode=Require;" \
-              "Jwt__Key=ServicioAtraccion_Super_Secret_Key_2026_Minimum_Length_Requirement_Long_String" \
+              "ConnectionStrings__DefaultConnection=Host=aws-1-us-east-1.pooler.supabase.com;Port=6543;Database=postgres;Username=postgres.nnwzfvfhveoelyyrrplv;Password=${{ secrets.DB_PASSWORD_BOOKING }};SSL Mode=Require;Trust Server Certificate=true;" \
+              "Jwt__Key=AtraccionesCoronelSuperSecretJWTKey2026MinimumLengthRequirementLongString!" \
               "Jwt__Issuer=ServicioAtraccion" \
               "Jwt__Audience=ServicioAtraccionUsers" \
               "Jwt__DurationMinutes=30" \
@@ -254,8 +275,8 @@ jobs:
             --env-vars \
               "ASPNETCORE_ENVIRONMENT=Production" \
               "ASPNETCORE_URLS=http://+:80" \
-              "ConnectionStrings__DefaultConnection=Host=db.xjadseakmpettnpyyxdm.supabase.co;Port=5432;Database=postgres;Username=postgres;Password=bBWJUwqbjdEcEesU;" \
-              "Jwt__Key=MicroserviciosAtraccionesBilling_Super_Secret_Key_2026" \
+              "ConnectionStrings__DefaultConnection=Host=aws-1-us-west-1.pooler.supabase.com;Port=6543;Database=postgres;Username=postgres.hkjzvfcourzjyzxheran;Password=${{ secrets.DB_PASSWORD_BILLING }};SSL Mode=Require;Trust Server Certificate=true;" \
+              "Jwt__Key=AtraccionesCoronelSuperSecretJWTKey2026MinimumLengthRequirementLongString!" \
               "Jwt__Issuer=BillingService" \
               "Jwt__Audience=BillingServiceUsers" \
               "Jwt__DurationMinutes=30" \
@@ -290,20 +311,44 @@ jobs:
           az containerapp update --name gateway-api --resource-group ${{ env.RESOURCE_GROUP }} \
             --image ${{ env.ACR_LOGIN_SERVER }}/gateway-api:latest --output none
 
-      - name: Obtener URL pública del Gateway
+      - name: Deploy frontend (EXTERNAL)
         run: |
-          URL=$(az containerapp show \
+          az containerapp create \
+            --name frontend \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --environment ${{ env.ACA_ENV }} \
+            --image ${{ env.ACR_LOGIN_SERVER }}/frontend:latest \
+            --registry-server ${{ env.ACR_LOGIN_SERVER }} \
+            --registry-username ${{ secrets.ACR_USERNAME }} \
+            --registry-password ${{ secrets.ACR_PASSWORD }} \
+            --target-port 80 --ingress external \
+            --min-replicas 1 --max-replicas 2 \
+            --cpu 0.25 --memory 0.5Gi \
+            --output none 2>/dev/null || \
+          az containerapp update --name frontend --resource-group ${{ env.RESOURCE_GROUP }} \
+            --image ${{ env.ACR_LOGIN_SERVER }}/frontend:latest --output none
+
+      - name: Obtener URL pública del Gateway y Frontend
+        run: |
+          GW_URL=$(az containerapp show \
             --name gateway-api \
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --query "properties.configuration.ingress.fqdn" \
             --output tsv)
+          FE_URL=$(az containerapp show \
+            --name frontend \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --query "properties.configuration.ingress.fqdn" \
+            --output tsv)
           echo "## ✅ DESPLIEGUE COMPLETADO" >> $GITHUB_STEP_SUMMARY
-          echo "🌐 **Gateway URL:** https://$URL" >> $GITHUB_STEP_SUMMARY
+          echo "🌐 **Gateway URL:** https://$GW_URL" >> $GITHUB_STEP_SUMMARY
+          echo "🖥️ **Frontend URL:** https://$FE_URL" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📡 Endpoints disponibles:" >> $GITHUB_STEP_SUMMARY
-          echo "- \`GET  https://$URL/health\`" >> $GITHUB_STEP_SUMMARY
-          echo "- \`*    https://$URL/api/v1/coronel_paula/catalog/...\`" >> $GITHUB_STEP_SUMMARY
-          echo "- \`*    https://$URL/api/v1/coronel_paula/booking/...\`" >> $GITHUB_STEP_SUMMARY
-          echo "- \`*    https://$URL/api/v1/coronel_paula/billing/...\`" >> $GITHUB_STEP_SUMMARY
-          echo "- \`*    https://$URL/api/v1/coronel_paula/...(identify)\`" >> $GITHUB_STEP_SUMMARY
-          echo "🌐 GATEWAY URL: https://$URL"
+          echo "- \`GET  https://$GW_URL/health\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`*    https://$GW_URL/api/v1/coronel_paula/catalog/...\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`*    https://$GW_URL/api/v1/coronel_paula/booking/...\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`*    https://$GW_URL/api/v1/coronel_paula/billing/...\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`*    https://$GW_URL/api/v1/coronel_paula/...(identify)\`" >> $GITHUB_STEP_SUMMARY
+          echo "🌐 GATEWAY URL: https://$GW_URL"
+          echo "🖥️ FRONTEND URL: https://$FE_URL"

@@ -5,12 +5,13 @@ const { createApp, ref, reactive, computed, onMounted, watch, nextTick } = Vue;
 const useMainStore = Pinia.defineStore('main', {
     state: () => ({
         // Configuración Global
-        isLiveMode: false,
+        isLiveMode: true,
+        gatewayUrl: 'https://gateway-api.purpleriver-a05782b6.centralus.azurecontainerapps.io',
         backendUrls: {
-            identify: 'http://localhost:5246',
-            catalog: 'http://localhost:5180',
-            booking: 'http://localhost:5190',
-            billing: 'http://localhost:5200'
+            identify: 'https://gateway-api.purpleriver-a05782b6.centralus.azurecontainerapps.io/api/v1/coronel_paula',
+            catalog:  'https://gateway-api.purpleriver-a05782b6.centralus.azurecontainerapps.io/api/v1/coronel_paula/catalog',
+            booking:  'https://gateway-api.purpleriver-a05782b6.centralus.azurecontainerapps.io/api/v1/coronel_paula/booking',
+            billing:  'https://gateway-api.purpleriver-a05782b6.centralus.azurecontainerapps.io/api/v1/coronel_paula/billing'
         },
         
         // Autenticación

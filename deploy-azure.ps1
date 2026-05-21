@@ -1,8 +1,8 @@
 # ==============================================================================
 # SCRIPT MAESTRO DE DESPLIEGUE — ATRACCIONES CORONEL
 # Azure Container Registry (ACR) + Azure Container Apps (ACA)
-# 5 servicios: catalog | booking | billing | identify | gateway (público)
-# Autor: Paula Coronel | .NET 10 Microservicios
+# 6 servicios: catalog | booking | billing | identify | gateway (público) | frontend (público)
+# Autor: Paula Coronel | .NET 10 Microservicios + Frontend
 # Ejecutar con: .\deploy-azure.ps1
 # ==============================================================================
 
@@ -11,30 +11,31 @@ $ErrorActionPreference = "Stop"
 # ─────────────────────────────────────────────────────────────────────────────
 # VARIABLES GLOBALES
 # ─────────────────────────────────────────────────────────────────────────────
-$LOCATION   = "eastus"
-$RG         = "rg-atracciones-coronel"
-$ACR_NAME   = "acratraccionescoronel"
-$ACA_ENV    = "aca-env-atracciones"
+$LOCATION     = "eastus"
+$RG           = "rg-atracciones-coronel"
+$ACR_NAME     = "acratraccionescoronel"
+$ACA_ENV      = "aca-env-atracciones"
 
 $APP_CATALOG  = "catalog-api"
 $APP_BOOKING  = "booking-api"
 $APP_BILLING  = "billing-api"
 $APP_IDENTIFY = "identify-api"
 $APP_GATEWAY  = "gateway-api"
+$APP_FRONTEND = "frontend"
 
-$ROOT = "d:\PUCE\SEXTO SEMESTRE\Integración de microservicios\ATRACCIONES_CORONEL\Microservicios.Atracciones"
+$ROOT = ".\Microservicios.Atracciones"
 
 Write-Host ""
 Write-Host "╔══════════════════════════════════════════════════════════════╗" -ForegroundColor Magenta
 Write-Host "║     DESPLIEGUE — ATRACCIONES CORONEL EN AZURE               ║" -ForegroundColor Magenta
-Write-Host "║     ACR + Azure Container Apps — 5 microservicios           ║" -ForegroundColor Magenta
+Write-Host "║     ACR + Azure Container Apps — 6 servicios                ║" -ForegroundColor Magenta
 Write-Host "╚══════════════════════════════════════════════════════════════╝" -ForegroundColor Magenta
 Write-Host ""
 
 # ==============================================================================
 # PASO 1: EXTENSIÓN DE CONTAINER APPS
 # ==============================================================================
-Write-Host "► [1/7] Registrando extensiones y proveedores Azure..." -ForegroundColor Cyan
+Write-Host "► [1/8] Registrando extensiones y proveedores Azure..." -ForegroundColor Cyan
 az extension add --name containerapp --upgrade --only-show-errors 2>$null
 az provider register --namespace Microsoft.App --only-show-errors 2>$null
 az provider register --namespace Microsoft.OperationalInsights --only-show-errors 2>$null
@@ -44,7 +45,7 @@ Write-Host "  ✅ Extensiones listas" -ForegroundColor Green
 # PASO 2: RESOURCE GROUP
 # ==============================================================================
 Write-Host ""
-Write-Host "► [2/7] Creando Resource Group: $RG en $LOCATION..." -ForegroundColor Cyan
+Write-Host "► [2/8] Creando Resource Group: $RG en $LOCATION..." -ForegroundColor Cyan
 az group create --name $RG --location $LOCATION --output none
 Write-Host "  ✅ Resource Group: $RG" -ForegroundColor Green
 
@@ -52,7 +53,7 @@ Write-Host "  ✅ Resource Group: $RG" -ForegroundColor Green
 # PASO 3: AZURE CONTAINER REGISTRY
 # ==============================================================================
 Write-Host ""
-Write-Host "► [3/7] Creando Azure Container Registry: $ACR_NAME..." -ForegroundColor Cyan
+Write-Host "► [3/8] Creando Azure Container Registry: $ACR_NAME..." -ForegroundColor Cyan
 az acr create `
   --resource-group $RG `
   --name $ACR_NAME `
@@ -68,7 +69,7 @@ Write-Host "  ✅ ACR: $ACR_LOGIN_SERVER" -ForegroundColor Green
 # PASO 4: CONTAINER APPS ENVIRONMENT
 # ==============================================================================
 Write-Host ""
-Write-Host "► [4/7] Creando Container Apps Environment: $ACA_ENV..." -ForegroundColor Cyan
+Write-Host "► [4/8] Creando Container Apps Environment: $ACA_ENV..." -ForegroundColor Cyan
 az containerapp env create `
   --name $ACA_ENV `
   --resource-group $RG `
@@ -80,7 +81,7 @@ Write-Host "  ✅ Environment ACA: $ACA_ENV" -ForegroundColor Green
 # PASO 5: BUILD Y PUSH DE IMÁGENES AL ACR (cloud build — sin Docker local)
 # ==============================================================================
 Write-Host ""
-Write-Host "► [5/7] Compilando y subiendo imágenes al ACR..." -ForegroundColor Cyan
+Write-Host "► [5/8] Compilando y subiendo imágenes al ACR..." -ForegroundColor Cyan
 Write-Host "  (Usando az acr build — compilación en la nube, no requiere Docker local)" -ForegroundColor Gray
 
 Write-Host "  ⏳ Building: identify-api..." -ForegroundColor Yellow
@@ -118,12 +119,21 @@ az acr build --registry $ACR_NAME --image "gateway-api:latest" `
   --output none
 Write-Host "  ✅ gateway-api → $ACR_LOGIN_SERVER/gateway-api:latest" -ForegroundColor Green
 
+Write-Host "  ⏳ Building: frontend..." -ForegroundColor Yellow
+az acr build --registry $ACR_NAME --image "frontend:latest" `
+  --file ".\Atracciones.Frontend\Dockerfile" `
+  ".\Atracciones.Frontend" `
+  --output none
+Write-Host "  ✅ frontend → $ACR_LOGIN_SERVER/frontend:latest" -ForegroundColor Green
+
 # ==============================================================================
 # PASO 6: DESPLIEGUE DE MICROSERVICIOS INTERNOS (sin IP pública)
 # ==============================================================================
 Write-Host ""
-Write-Host "► [6/7] Desplegando microservicios INTERNOS en Azure Container Apps..." -ForegroundColor Cyan
+Write-Host "► [6/8] Desplegando microservicios INTERNOS en Azure Container Apps..." -ForegroundColor Cyan
 Write-Host "  (ingress: internal — sin IP pública, solo accesibles dentro del ACA)" -ForegroundColor Gray
+
+$JWT_KEY = "AtraccionesCoronelSuperSecretJWTKey2026MinimumLengthRequirementLongString!"
 
 # ── IDENTIFY API (se despliega primero: es la base de autenticación) ──────────
 Write-Host "  ⏳ Desplegando: identify-api (internal)..." -ForegroundColor Yellow
@@ -142,8 +152,8 @@ az containerapp create `
   --env-vars `
     "ASPNETCORE_ENVIRONMENT=Production" `
     "ASPNETCORE_URLS=http://+:80" `
-    "ConnectionStrings__DefaultConnection=Host=db.vhjkcpaybeymqitqagxs.supabase.co;Port=5432;Database=postgres;Username=postgres;Password=ckK57qK7aNHyc7no;SSL Mode=Require;" `
-    "Jwt__Key=Microservicios.Atracciones.Identify_Super_Secret_Key_2026_Minimum_Length_Requirement_Long_String" `
+    "ConnectionStrings__DefaultConnection=Host=aws-1-us-west-2.pooler.supabase.com;Port=6543;Database=postgres;Username=postgres.cdjwkanairobhsxodpnx;Password=AtraccionesCoronel2026!;SSL Mode=Require;Trust Server Certificate=true;" `
+    "Jwt__Key=$JWT_KEY" `
     "Jwt__Issuer=Microservicios.Atracciones.Identify" `
     "Jwt__Audience=Microservicios.Atracciones.IdentifyUsers" `
     "Jwt__DurationMinutes=30" `
@@ -167,15 +177,15 @@ az containerapp create `
   --env-vars `
     "ASPNETCORE_ENVIRONMENT=Production" `
     "ASPNETCORE_URLS=http://+:80" `
-    "ConnectionStrings__DefaultConnection=Host=db.koyyvtwkntezlhfvdqmb.supabase.co;Port=5432;Database=postgres;Username=postgres;Password=4qnBTn2cO6FP25Y5;" `
-    "Jwt__Key=MicroserviciosAtraccionesCatalog_Super_Secret_Key_2026_Minimum_Length_Requirement_Long_String" `
+    "ConnectionStrings__DefaultConnection=Host=aws-1-sa-east-1.pooler.supabase.com;Port=6543;Database=postgres;Username=postgres.kimthxyijmgfglyirded;Password=AtraccionesCoronel2026!;SSL Mode=Require;Trust Server Certificate=true;" `
+    "Jwt__Key=$JWT_KEY" `
     "Jwt__Issuer=MicroserviciosAtraccionesCatalog" `
     "Jwt__Audience=MicroserviciosAtraccionesCatalogUsers" `
     "Jwt__DurationMinutes=30" `
   --output none
 Write-Host "  ✅ catalog-api desplegado (DNS interno: http://catalog-api)" -ForegroundColor Green
 
-# ── BOOKING API (referencia catalog-api e identify-api internamente) ──────────
+# ── BOOKING API ───────────────────────────────────────────────────────────────
 Write-Host "  ⏳ Desplegando: booking-api (internal)..." -ForegroundColor Yellow
 az containerapp create `
   --name $APP_BOOKING `
@@ -192,8 +202,8 @@ az containerapp create `
   --env-vars `
     "ASPNETCORE_ENVIRONMENT=Production" `
     "ASPNETCORE_URLS=http://+:80" `
-    "ConnectionStrings__DefaultConnection=Host=db.xjadseakmpettnpyyxdm.supabase.co;Port=5432;Database=postgres;Username=postgres;Password=bBWJUwqbjdEcEesU;SSL Mode=Require;" `
-    "Jwt__Key=ServicioAtraccion_Super_Secret_Key_2026_Minimum_Length_Requirement_Long_String" `
+    "ConnectionStrings__DefaultConnection=Host=aws-1-us-east-1.pooler.supabase.com;Port=6543;Database=postgres;Username=postgres.nnwzfvfhveoelyyrrplv;Password=AtraccionesCoronel2026!;SSL Mode=Require;Trust Server Certificate=true;" `
+    "Jwt__Key=$JWT_KEY" `
     "Jwt__Issuer=ServicioAtraccion" `
     "Jwt__Audience=ServicioAtraccionUsers" `
     "Jwt__DurationMinutes=30" `
@@ -202,7 +212,7 @@ az containerapp create `
   --output none
 Write-Host "  ✅ booking-api desplegado (DNS interno: http://booking-api)" -ForegroundColor Green
 
-# ── BILLING API (referencia booking-api e identify-api internamente) ──────────
+# ── BILLING API ───────────────────────────────────────────────────────────────
 Write-Host "  ⏳ Desplegando: billing-api (internal)..." -ForegroundColor Yellow
 az containerapp create `
   --name $APP_BILLING `
@@ -219,8 +229,8 @@ az containerapp create `
   --env-vars `
     "ASPNETCORE_ENVIRONMENT=Production" `
     "ASPNETCORE_URLS=http://+:80" `
-    "ConnectionStrings__DefaultConnection=Host=db.xjadseakmpettnpyyxdm.supabase.co;Port=5432;Database=postgres;Username=postgres;Password=bBWJUwqbjdEcEesU;" `
-    "Jwt__Key=MicroserviciosAtraccionesBilling_Super_Secret_Key_2026" `
+    "ConnectionStrings__DefaultConnection=Host=aws-1-us-west-1.pooler.supabase.com;Port=6543;Database=postgres;Username=postgres.hkjzvfcourzjyzxheran;Password=AtraccionesCoronel2026!;SSL Mode=Require;Trust Server Certificate=true;" `
+    "Jwt__Key=$JWT_KEY" `
     "Jwt__Issuer=BillingService" `
     "Jwt__Audience=BillingServiceUsers" `
     "Jwt__DurationMinutes=30" `
@@ -234,8 +244,8 @@ Write-Host "  ✅ billing-api desplegado (DNS interno: http://billing-api)" -For
 # PASO 7: DESPLIEGUE DEL API GATEWAY (EXTERNO — IP PÚBLICA)
 # ==============================================================================
 Write-Host ""
-Write-Host "► [7/7] Desplegando API GATEWAY (EXTERNO — acceso público)..." -ForegroundColor Cyan
-Write-Host "  (ingress: external — este es el único punto público de toda la arquitectura)" -ForegroundColor Gray
+Write-Host "► [7/8] Desplegando API GATEWAY (EXTERNO — acceso público)..." -ForegroundColor Cyan
+Write-Host "  (ingress: external — este redirige el tráfico público a los servicios internos)" -ForegroundColor Gray
 
 az containerapp create `
   --name $APP_GATEWAY `
@@ -258,14 +268,39 @@ az containerapp create `
     "ReverseProxy__Clusters__identify-cluster__Destinations__identify-api__Address=http://identify-api" `
   --output none
 
-# Obtener la URL pública del Gateway
 $GATEWAY_FQDN = az containerapp show `
   --name $APP_GATEWAY `
   --resource-group $RG `
   --query "properties.configuration.ingress.fqdn" `
   --output tsv
-
 Write-Host "  ✅ gateway-api desplegado (PÚBLICO)" -ForegroundColor Green
+
+# ==============================================================================
+# PASO 8: DESPLIEGUE DEL FRONTEND ESTÁTICO (EXTERNO — IP PÚBLICA)
+# ==============================================================================
+Write-Host ""
+Write-Host "► [8/8] Desplegando FRONTEND ESTÁTICO (EXTERNO — acceso público)..." -ForegroundColor Cyan
+
+az containerapp create `
+  --name $APP_FRONTEND `
+  --resource-group $RG `
+  --environment $ACA_ENV `
+  --image "$ACR_LOGIN_SERVER/frontend:latest" `
+  --registry-server $ACR_LOGIN_SERVER `
+  --registry-username $ACR_NAME `
+  --registry-password $ACR_PASSWORD `
+  --target-port 80 `
+  --ingress external `
+  --min-replicas 1 --max-replicas 2 `
+  --cpu 0.25 --memory 0.5Gi `
+  --output none
+
+$FRONTEND_FQDN = az containerapp show `
+  --name $APP_FRONTEND `
+  --resource-group $RG `
+  --query "properties.configuration.ingress.fqdn" `
+  --output tsv
+Write-Host "  ✅ frontend desplegado (PÚBLICO)" -ForegroundColor Green
 
 # ==============================================================================
 # RESUMEN FINAL
@@ -274,6 +309,9 @@ Write-Host ""
 Write-Host "╔══════════════════════════════════════════════════════════════╗" -ForegroundColor Green
 Write-Host "║              ✅ DESPLIEGUE COMPLETADO                        ║" -ForegroundColor Green
 Write-Host "╚══════════════════════════════════════════════════════════════╝" -ForegroundColor Green
+Write-Host ""
+Write-Host "🌐 URL PÚBLICA DEL FRONTEND:" -ForegroundColor Yellow
+Write-Host "   https://$FRONTEND_FQDN" -ForegroundColor White
 Write-Host ""
 Write-Host "🌐 URL PÚBLICA DEL GATEWAY:" -ForegroundColor Yellow
 Write-Host "   https://$GATEWAY_FQDN" -ForegroundColor White
@@ -291,11 +329,8 @@ Write-Host "   catalog-api   → http://catalog-api   (solo dentro del ACA)"
 Write-Host "   booking-api   → http://booking-api   (solo dentro del ACA)"
 Write-Host "   billing-api   → http://billing-api   (solo dentro del ACA)"
 Write-Host ""
-Write-Host "📋 PRÓXIMO PASO — Configura el Frontend:" -ForegroundColor Yellow
-Write-Host "   Edita Atracciones.Frontend\app.js y pon:"
-Write-Host "   const API_BASE_URL = 'https://$GATEWAY_FQDN';" -ForegroundColor White
-Write-Host ""
 
 # Guardar la URL en un archivo para uso futuro
 "GATEWAY_URL=https://$GATEWAY_FQDN" | Out-File -FilePath "gateway-url.txt" -Encoding UTF8
-Write-Host "💾 URL guardada en: gateway-url.txt" -ForegroundColor Gray
+"FRONTEND_URL=https://$FRONTEND_FQDN" | Out-File -FilePath "frontend-url.txt" -Encoding UTF8
+Write-Host "💾 URLs guardadas en: gateway-url.txt y frontend-url.txt" -ForegroundColor Gray
